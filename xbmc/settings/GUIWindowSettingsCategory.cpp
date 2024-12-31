@@ -1202,7 +1202,7 @@ void CGUIWindowSettingsCategory::UpdateSettings()
 	  if(g_guiSettings.GetInt("lcd.modchip") != MODCHIP_NONE)
       {
 		int iModchip = g_guiSettings.GetInt("lcd.modchip");
-		int enabled = iModchip == MODCHIP_MODXO_HD44780 || iModchip == MODCHIP_MODXO_LCDXXXX || iModchip == MODCHIP_SMBUS_HD44780;
+		int enabled = iModchip == MODCHIP_SMBUS_HD44780 || iModchip == MODCHIP_MODXO_LCDXXXX || iModchip == MODCHIP_SMBUS_HD44780;
         if (pControl) pControl->SetEnabled(enabled);
       }
       else 
@@ -1579,8 +1579,10 @@ void CGUIWindowSettingsCategory::OnSettingChanged(CBaseSettingControl *pSettingC
   }
   else if (strSetting.Equals("system.minfanspeed"))
   {
-    CSettingInt *pSetting = (CSettingInt*)pSettingControl->GetSetting();
+	CSettingInt *pSetting = (CSettingInt*)pSettingControl->GetSetting();
     CFanController::Instance()->SetMinFanSpeed(pSetting->GetData());
+    CFanController::Instance()->Stop();
+    CFanController::Instance()->SetFanSpeed(pSetting->GetData());
   }
   else if (strSetting.Equals("system.fanspeedcontrol"))
   {
