@@ -1713,7 +1713,7 @@ void CApplication::StartLEDControl(bool switchoff)
 void CApplication::DimLCDOnPlayback(bool dim)
 {
 #ifdef HAS_LCD
-  if(g_lcd && dim && (g_guiSettings.GetInt("lcd.disableonplayback") != LED_PLAYBACK_OFF) && (g_guiSettings.GetInt("lcd.type") != LCD_TYPE_NONE))
+  if(g_lcd && dim && (g_guiSettings.GetInt("lcd.disableonplayback") != LED_PLAYBACK_OFF) && (g_guiSettings.GetInt("lcd.modchip") != MODCHIP_NONE))
   {
     if ( (IsPlayingVideo()) && g_guiSettings.GetInt("lcd.disableonplayback") == LED_PLAYBACK_VIDEO)
       g_lcd->SetBackLight(0);
@@ -2776,7 +2776,7 @@ void CApplication::UpdateLCD()
 #ifdef HAS_LCD
   static lTickCount = 0;
 
-  if (!g_lcd || g_guiSettings.GetInt("lcd.type") == LCD_TYPE_NONE)
+  if (!g_lcd || g_guiSettings.GetInt("lcd.modchip") == MODCHIP_NONE)
     return ;
   long lTimeOut = 1000;
   if ( m_iPlaySpeed != 1)

@@ -58,7 +58,7 @@ DDRAM address      54 55 56 57 58 59 5a 5b 5c 5d 5e 5f 60 61 62 63 64 65 66 67
 class CX3LCD : public ILCD
 {
 public:
-	CX3LCD();
+	CX3LCD(unsigned int type);
 	virtual ~CX3LCD(void);
 	virtual void Initialize();
 	virtual void Stop();
@@ -78,12 +78,9 @@ protected:
 	void    DisplayBuildCustomChars() ;
 	void    DisplayOut(unsigned char data, unsigned char command) ;
 	void    wait_us(unsigned int value) ;
+	unsigned int m_iType;
 	unsigned int m_iColumns;			// display columns for each line
 	unsigned int m_iRows;				// total number of rows
-	unsigned int m_iRow1adr ;
-	unsigned int m_iRow2adr ;
-	unsigned int m_iRow3adr ;
-	unsigned int m_iRow4adr ;
 	unsigned int m_iActualpos;			// actual cursor possition
 	int          m_iBackLight;
 	bool         m_bUpdate[MAX_ROWS];

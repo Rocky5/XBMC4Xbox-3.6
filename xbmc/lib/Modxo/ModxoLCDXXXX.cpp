@@ -1,67 +1,83 @@
 
-#include "xeniumlcd.h"
+#include "ModxoLCDXXXX.h"
 #include "conio.h"
 #include "settings/Settings.h"
 #include "utils/log.h"
+#include "undocumented.h"
 
-#define SCROLL_SPEED_IN_MSEC 250
+#define MODXO_SCROLL_SPEED_IN_MSEC 250
+#define MODXO_LCD_COMMAND_MODE 0x80
+#define MODXO_LCD_DATA_MODE 0x40
 
+#define MODXO_REGISTER_LCD_COMMAND 0xDEA8
+#define MODXO_REGISTER_LCD_DATA 0xDEA9
+
+#define MODXO_LCD_SPI 0x00
+#define MODXO_LCD_I2C 0x01
+#define MODXO_LCD_REMOVE_I2C_PREFIX 2
+#define MODXO_LCD_SET_I2C_PREFIX 3
+#define MODXO_LCD_SET_CLK 4
+#define MODXO_LCD_SET_SPI_MODE 5
 
 //*************************************************************************************************************
-CXeniumLCD::CXeniumLCD()
+CModxoLCDXXXX::CModxoLCDXXXX()
 {
   m_iActualpos=0;
   m_iRows    = 4;
   m_iColumns = 20;        // display rows each line
   m_iBackLight=32;
-  m_iLCDContrast=50;      // Extra Xenium feature
+  m_iContrast=50; 
+  m_iI2CAddress=0;
 }
 
 //*************************************************************************************************************
-CXeniumLCD::~CXeniumLCD()
+CModxoLCDXXXX::~CModxoLCDXXXX()
 {
 }
 
 //*************************************************************************************************************
-void CXeniumLCD::Initialize()
+void CModxoLCDXXXX::Initialize()
 {
   StopThread();
   ILCD::Initialize();
   Create();
   
 }
-void CXeniumLCD::SetBackLight(int iLight)
+void CModxoLCDXXXX::SetBackLight(int iLight)
 {
   m_iBackLight=iLight;
 }
-void CXeniumLCD::SetContrast(int iContrast)
+void CModxoLCDXXXX::SetContrast(int iContrast)
 {
-	m_xenium.SetContrast(iContrast/4);
+	if (iContrast<0) iContrast=0;
+	if (iContrast>100) iContrast=100;
+	m_iContrast=iContrast;
 }
 
 //*************************************************************************************************************
-void CXeniumLCD::Stop()
+void CModxoLCDXXXX::Stop()
 {
   StopThread();
 }
 
 //*************************************************************************************************************
-void CXeniumLCD::SetLine(int iLine, const CStdString& strLine)
+void CModxoLCDXXXX::SetLine(int iLine, const CStdString& strLine)
 {
-  if (iLine < 0 || iLine >= (int)m_iRows) return;
-  
-  CStdString strLineLong=strLine;
-  strLineLong.Trim();
-  StringToLCDCharSet(LCD_TYPE_HD44780, strLineLong);
+	if (iLine < 0 || iLine >= (int)m_iRows) 
+		return;
 
-  while (strLineLong.size() < m_iColumns) strLineLong+=" ";
-  if (strLineLong != m_strLine[iLine])
-  {
-//    CLog::Log(LOGINFO, "set line:%i [%s]", iLine,strLineLong.c_str());
-    m_bUpdate[iLine]=true;
-    m_strLine[iLine]=strLineLong;
-    m_event.Set();
-  }
+	CStdString strLineLong=strLine;
+	//strLineLong.Trim();
+	StringToLCDCharSet(LCD_TYPE_HD44780, strLineLong);
+
+	while (strLineLong.size() < m_iColumns) 
+		strLineLong+=" ";
+	if (strLineLong != m_strLine[iLine])
+	{
+		m_bUpdate[iLine] = true;
+		m_strLine[iLine] = strLineLong;
+		m_event.Set();
+	}
 }
 
 
@@ -69,24 +85,17 @@ void CXeniumLCD::SetLine(int iLine, const CStdString& strLine)
 // wait_us: delay routine
 // Input: (wait in ~us)
 //************************************************************************************************************************
-void CXeniumLCD::wait_us(unsigned int value) 
+void CModxoLCDXXXX::wait_us(unsigned int value) 
 {
+	unsigned long long timeout = value;
+	timeout *= -10; // 100ns units
+	KeDelayExecutionThread(1, 0, (PLARGE_INTEGER)(&timeout));
 }
-
-
-//************************************************************************************************************************
-// DisplayOut: writes command or datas to display
-// Input: (Value to write, token as CMD = Command / DAT = DATAs / INI for switching to 4 bit mode)
-//************************************************************************************************************************
-void CXeniumLCD::DisplayOut(unsigned char data, unsigned char command) 
-{
-
- }
 
 //************************************************************************************************************************
 //DisplayBuildCustomChars: load customized characters to character ram of display, resets cursor to pos 0
 //************************************************************************************************************************
-void CXeniumLCD::DisplayBuildCustomChars() 
+void CModxoLCDXXXX::DisplayBuildCustomChars() 
 {
 
 }
@@ -96,19 +105,24 @@ void CXeniumLCD::DisplayBuildCustomChars()
 // DisplaySetPos: sets cursor position
 // Input: (row position, line number from 0 to 3)
 //************************************************************************************************************************
-void CXeniumLCD::DisplaySetPos(unsigned char pos, unsigned char line) 
+void CModxoLCDXXXX::DisplaySetPos(unsigned char pos, unsigned char line) 
 {
-  m_xenium.SetCursorPosition(  pos, line);
+	int row_offsets[] = { 0x00, 0x40, 0x14, 0x54 };
+	uint8_t cursor = 0x80 | (pos + row_offsets[line]);
+	command(cursor);
 }
-
 
 //************************************************************************************************************************
 // DisplayWriteFixText: write a fixed text to actual cursor position
 // Input: ("fixed text like")
 //************************************************************************************************************************
-void CXeniumLCD::DisplayWriteFixtext(const char *textstring)
+void CModxoLCDXXXX::DisplayWriteFixtext(const char *textstring)
 { 
-  m_xenium.OutputString(textstring,m_iColumns);
+	unsigned char  c;
+	while (c = *textstring++) 
+	{
+		writeChar(c);
+	}
 } 
 
 
@@ -117,9 +131,18 @@ void CXeniumLCD::DisplayWriteFixtext(const char *textstring)
 // Input: (pointer to a 0x00 terminated string)
 //************************************************************************************************************************
 
-void CXeniumLCD::DisplayWriteString(char *pointer) 
+void CModxoLCDXXXX::DisplayWriteString(char *pointer) 
 {
-  m_xenium.OutputString(pointer,m_iColumns);
+	/* display a normal 0x00 terminated string on the LCD display */
+	unsigned char c;
+	do {
+		c = *pointer;
+		if (c == 0x00)
+		break;
+
+		writeChar(c);
+		*pointer++;
+	} while(1);
 }		
 
 
@@ -127,8 +150,15 @@ void CXeniumLCD::DisplayWriteString(char *pointer)
 // DisplayClearChars:  clears a number of chars in a line and resets cursor position to it's startposition
 // Input: (Startposition of clear in row, row number, number of chars to clear)
 //************************************************************************************************************************
-void CXeniumLCD::DisplayClearChars(unsigned char startpos , unsigned char line, unsigned char lenght) 
+void CModxoLCDXXXX::DisplayClearChars(unsigned char startpos , unsigned char line, unsigned char lenght) 
 {
+	int i;
+
+	DisplaySetPos(startpos,line);
+	for (i=0;i<lenght; i++){
+		writeChar(0x20);
+	}
+	DisplaySetPos(startpos,line);
 }
 
 
@@ -136,61 +166,88 @@ void CXeniumLCD::DisplayClearChars(unsigned char startpos , unsigned char line, 
 // DisplayProgressBar: shows a grafic bar staring at actual cursor position
 // Input: (percent of bar to display, lenght of whole bar in chars when 100 %)
 //************************************************************************************************************************
-void CXeniumLCD::DisplayProgressBar(unsigned char percent, unsigned char charcnt) 
+void CModxoLCDXXXX::DisplayProgressBar(unsigned char percent, unsigned char charcnt) 
 {
 
 }
 //************************************************************************************************************************
 //Set brightness level 
 //************************************************************************************************************************
-void CXeniumLCD::DisplaySetBacklight(unsigned char level) 
+void CModxoLCDXXXX::DisplaySetBacklight(unsigned char level) 
 {
-  if (level<0) level=0;
-  if (level>100) level=100;
-  m_xenium.SetBacklight(level/4);
+	if (level<0) level=0;
+	if (level>100) level=100;
 }
 //************************************************************************************************************************
-void CXeniumLCD::DisplayInit()
+//Set Contrast level
+//************************************************************************************************************************
+void CModxoLCDXXXX::DisplaySetContrast(unsigned char level)
 {
-  m_xenium.ShowDisplay();
-  m_xenium.HideCursor();
-  m_xenium.ScrollOff();
-  m_xenium.WrapOff();
-  SetContrast(m_iLCDContrast);
+	if (level<0) level=0;
+	if (level>100) level=100;
+}
+//************************************************************************************************************************
+void CModxoLCDXXXX::DisplayInit()
+{
+	int i2c_addresses[] = { 0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x38, 0x39, 0x3a, 0x3b, 0x3c, 0x3d, 0x3e, 0x3f };
+	uint8_t address = i2c_addresses[m_iI2CAddress];
+
+	_outp(MODXO_REGISTER_LCD_COMMAND, MODXO_LCD_SET_CLK);
+	_outp(MODXO_REGISTER_LCD_COMMAND, 100);
+	_outp(MODXO_REGISTER_LCD_COMMAND, MODXO_LCD_REMOVE_I2C_PREFIX);
+	_outp(MODXO_REGISTER_LCD_COMMAND, MODXO_LCD_I2C);
+	_outp(MODXO_REGISTER_LCD_COMMAND, address);
+	wait_us(2000);
+
+	write4bits(0x03 << 4);
+	wait_us(4500);
+	write4bits(0x03 << 4);
+	wait_us(4500);
+	write4bits(0x03 << 4);
+	wait_us(4500);
+	write4bits(0x02 << 4);
+	command(0x20 | 0x08);
+	command(0x08 | 0x04);
+	command(0x01);
+	wait_us(2000);
+	command(0x04 | 0x02);
+	command(0x02);
+	wait_us(2000);
 }
 
 //************************************************************************************************************************
-void CXeniumLCD::Process()
+void CModxoLCDXXXX::Process()
 {
-  int iOldLight=-1;  
+  int iOldLight=-1;
   int iOldContrast=-1;
 
   m_iColumns = g_advancedSettings.m_lcdColumns;
   m_iRows    = g_advancedSettings.m_lcdRows;
   m_iBackLight= g_guiSettings.GetInt("lcd.backlight");
-  m_iLCDContrast = g_guiSettings.GetInt("lcd.contrast");
+  m_iContrast = g_guiSettings.GetInt("lcd.contrast");
+  m_iI2CAddress = g_guiSettings.GetInt("lcd.i2caddress");
   if (m_iRows >= MAX_ROWS) m_iRows=MAX_ROWS-1;
 
   DisplayInit();
   while (!m_bStop)
   {
-    Sleep(SCROLL_SPEED_IN_MSEC);  
+    Sleep(MODXO_SCROLL_SPEED_IN_MSEC);
     if (m_iBackLight != iOldLight)
     {
       // backlight setting changed
       iOldLight=m_iBackLight;
       DisplaySetBacklight(m_iBackLight);
     }
-	  if (m_iLCDContrast != iOldContrast)
+    if (m_iContrast != iOldContrast)
     {
       // contrast setting changed
-      iOldContrast=m_iLCDContrast;
-      SetContrast(m_iLCDContrast);
+      iOldContrast=m_iContrast;
+      DisplaySetContrast(m_iContrast);
     }
-	  DisplayBuildCustomChars();
-	  for (int iLine=0; iLine < (int)m_iRows; ++iLine)
+    DisplayBuildCustomChars();
+    for (int iLine=0; iLine < (int)m_iRows; ++iLine)
     {
-	    if (m_bUpdate[iLine])
+      if (m_bUpdate[iLine])
       {
         CStdString strTmp=m_strLine[iLine];
         if (strTmp.size() > m_iColumns)
@@ -229,7 +286,50 @@ void CXeniumLCD::Process()
   }
   for (int i=0; i < (int)m_iRows; i++)
   {
-	  DisplayClearChars(0,i,m_iColumns);
-  } 
-  m_xenium.HideDisplay();
+    DisplayClearChars(0,i,m_iColumns);
+  }
+  command(0x08);
+}
+
+
+void CModxoLCDXXXX::expanderWrite(uint8_t value) 
+{
+    uint8_t bl = 0x08;
+	uint8_t data = (uint8_t)(value | bl);
+	_outp(MODXO_REGISTER_LCD_DATA, data);
+}
+
+void CModxoLCDXXXX::pulseEnable(uint8_t value) 
+{
+    uint8_t En = 0x04;
+
+    expanderWrite(value | En);
+	wait_us(1);
+
+    expanderWrite(value & ~En);
+    wait_us(50);
+}
+
+void CModxoLCDXXXX::write4bits(uint8_t value) 
+{
+    expanderWrite(value);
+    pulseEnable(value);
+}
+
+void CModxoLCDXXXX::send(uint8_t value, uint8_t mode) 
+{
+    uint8_t highnib = value & 0xf0;
+    uint8_t lownib = (value << 4) & 0xf0;
+    write4bits((highnib) | mode);
+    write4bits((lownib) | mode); 
+}
+
+void CModxoLCDXXXX::command(uint8_t value) 
+{
+    send(value, 0);
+}
+
+void CModxoLCDXXXX::writeChar(uint8_t value) 
+{
+    send(value, 1);
 }
