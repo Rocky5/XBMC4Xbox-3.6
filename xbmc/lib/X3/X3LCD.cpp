@@ -10,29 +10,13 @@
 char X3LcdAnimIndex=0;
 
 //*************************************************************************************************************
-CX3LCD::CX3LCD()
+CX3LCD::CX3LCD(unsigned int type)
 {
+  m_iType = type;
   m_iActualpos=0;
   m_iRows    = 4;
   m_iColumns = 20;        // display rows each line
   m_iBackLight=32;
-
-  if (g_guiSettings.GetInt("lcd.type") == LCD_TYPE_LCD_KS0073)
-  {
-    // Special case: it's the KS0073
-    m_iRow1adr = 0x00;
-    m_iRow2adr = 0x20;
-    m_iRow3adr = 0x40;
-    m_iRow4adr = 0x60;
-  }
-  else
-  {
-    // We assume that it's a HD44780 compatible
-    m_iRow1adr = 0x00;
-    m_iRow2adr = 0x40;
-    m_iRow3adr = 0x14;
-    m_iRow4adr = 0x54;
-  }
 }
 
 //*************************************************************************************************************
@@ -44,12 +28,7 @@ CX3LCD::~CX3LCD()
 void CX3LCD::Initialize()
 {
 	StopThread();
-	if (g_guiSettings.GetInt("lcd.type") == LCD_TYPE_NONE) 
-	{
-    CLog::Log(LOGINFO, "lcd not used");
-    return;
-	}
-  ILCD::Initialize();
+    ILCD::Initialize();
 	Create();
 }
 
@@ -61,22 +40,18 @@ void CX3LCD::SetContrast(int iContrast) { }
 //*************************************************************************************************************
 void CX3LCD::Stop()
 {
-	if (g_guiSettings.GetInt("lcd.type") == LCD_TYPE_NONE) 
-		return;
 	StopThread();
 }
 
 //*************************************************************************************************************
 void CX3LCD::SetLine(int iLine, const CStdString& strLine)
 {
-	if (g_guiSettings.GetInt("lcd.type") == LCD_TYPE_NONE) 
-		return;
 	if (iLine < 0 || iLine >= (int)m_iRows) 
 		return;
 
 	CStdString strLineLong=strLine;
 	//strLineLong.Trim();
-	StringToLCDCharSet(strLineLong);
+	StringToLCDCharSet(m_iType, strLineLong);
 
 	while (strLineLong.size() < m_iColumns) 
 		strLineLong+=" ";
@@ -230,23 +205,33 @@ void CX3LCD::DisplayBuildCustomChars()
 //************************************************************************************************************************
 void CX3LCD::DisplaySetPos(unsigned char pos, unsigned char line) 
 {
+	unsigned int type = m_iType & ~LCD_TYPE_VFD;
+	int row_offsets[] = { 0x00, 0x40, 0x14, 0x54 };
+	if (type == LCD_TYPE_KS0073)
+	{
+		row_offsets[0] = 0x00;
+		row_offsets[1] = 0x20;
+		row_offsets[2] = 0x40;
+		row_offsets[3] = 0x60;
+	}
 
-	unsigned int cursorpointer;
-
-	cursorpointer = pos % m_iColumns;
-
-	if (line == 0) {
-		cursorpointer += m_iRow1adr;
-	}
-	if (line == 1) {
-		cursorpointer += m_iRow2adr;
-	}
-	if (line == 2) {
-		cursorpointer += m_iRow3adr;
-	}
-	if (line == 3) {
-		cursorpointer += m_iRow4adr;
-	}
+    unsigned int cursorpointer = pos % m_iColumns;
+    if (line == 0)
+    {
+        cursorpointer += row_offsets[0];
+    }
+    if (line == 1)
+    {
+        cursorpointer += row_offsets[1];
+    }
+    if (line == 2)
+    {
+        cursorpointer += row_offsets[2];
+    }
+    if (line == 3)
+    {
+        cursorpointer += row_offsets[3];
+    }
 	DisplayOut(DISP_DDRAM_SET | cursorpointer, CMD);
 	m_iActualpos = cursorpointer;
 }
@@ -374,10 +359,6 @@ void CX3LCD::Process()
 
 	m_iColumns = g_advancedSettings.m_lcdColumns;
 	m_iRows    = g_advancedSettings.m_lcdRows;
-	m_iRow1adr = g_advancedSettings.m_lcdAddress1;
-	m_iRow2adr = g_advancedSettings.m_lcdAddress2;
-	m_iRow3adr = g_advancedSettings.m_lcdAddress3;
-	m_iRow4adr = g_advancedSettings.m_lcdAddress4;
 	m_iBackLight= g_guiSettings.GetInt("lcd.backlight");
 	if (m_iRows >= MAX_ROWS) 
 		m_iRows = MAX_ROWS - 1;
