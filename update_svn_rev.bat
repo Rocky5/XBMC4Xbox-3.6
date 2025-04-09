@@ -11,30 +11,56 @@ IF EXIST %REV_FILE% del %REV_FILE%
 
 SET SUBWCREV=""
 
-IF EXIST "%ProgramFiles(x86)%\TortoiseSVN\bin\subwcrev.exe" SET SUBWCREV="%ProgramFiles(x86)%\TortoiseSVN\bin\subwcrev.exe"
-IF EXIST "%ProgramFiles%\TortoiseSVN\bin\subwcrev.exe"      SET SUBWCREV="%ProgramFiles%\TortoiseSVN\bin\subwcrev.exe"
-IF EXIST "%ProgramW6432%\TortoiseSVN\bin\subwcrev.exe" SET SUBWCREV="%ProgramW6432%\TortoiseSVN\bin\subwcrev.exe"
+REM IF EXIST "%ProgramFiles(x86)%\TortoiseSVN\bin\subwcrev.exe" SET SUBWCREV="%ProgramFiles(x86)%\TortoiseSVN\bin\subwcrev.exe"
+REM IF EXIST "%ProgramFiles%\TortoiseSVN\bin\subwcrev.exe"      SET SUBWCREV="%ProgramFiles%\TortoiseSVN\bin\subwcrev.exe"
+REM IF EXIST "%ProgramW6432%\TortoiseSVN\bin\subwcrev.exe" SET SUBWCREV="%ProgramW6432%\TortoiseSVN\bin\subwcrev.exe"
 
-IF NOT EXIST %SUBWCREV% (
-   ECHO subwcrev.exe not found in expected locations, skipping generation
-   GOTO SKIPSUBWCREV
-)
+REM IF NOT EXIST %SUBWCREV% (
+   REM ECHO subwcrev.exe not found in expected locations, skipping generation
+   REM GOTO SKIPSUBWCREV
+REM )
 
-%SUBWCREV% %SVN_TEMPLATE% %REV_FILE% -f
+REM %SUBWCREV% %SVN_TEMPLATE% %REV_FILE% -f
 
 REM Generate the SVN revision header if it does not exist
 IF NOT EXIST %REV_FILE% (
    ECHO Generating SVN revision header from SVN repo
-   %SUBWCREV% "%CWD%." %SVN_TEMPLATE% %REV_FILE% -f
+   (
+   Echo #ifndef __SVN_REV__H__
+   Echo #define __SVN_REV__H__
+   Echo /*
+   Echo *      Copyright ^(C^) 2005-2013 Team XBMC
+   Echo *      http://xbmc.org
+   Echo *
+   Echo *  This Program is free software; you can redistribute it and/or modify
+   Echo *  it under the terms of the GNU General Public License as published by
+   Echo *  the Free Software Foundation; either version 2, or ^(at your option^)
+   Echo *  any later version.
+   Echo *
+   Echo *  This Program is distributed in the hope that it will be useful,
+   Echo *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+   Echo *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   Echo *  GNU General Public License for more details.
+   Echo *
+   Echo *  You should have received a copy of the GNU General Public License
+   Echo *  along with XBMC; see the file COPYING.  If not, see
+   Echo *  ^<http://www.gnu.org/licenses/^>.
+   Echo *
+   Echo */
+   Echo #define SVN_REV   "33046"
+   Echo #define SVN_DATE  "2023/01/14 18:16:15"
+   Echo #endif
+   )>%REV_FILE%
+   REM %SUBWCREV% "%CWD%." %SVN_TEMPLATE% %REV_FILE% -f
 )
 
-:SKIPSUBWCREV
+REM :SKIPSUBWCREV
 
 REM Copy the default unknown revision header if the generation did not occur
-IF NOT EXIST %REV_FILE% (
-   ECHO using default svn revision unknown header
-   copy %CWD%xbmc\xbox\svn_rev.unknown %REV_FILE%
-)
+REM IF NOT EXIST %REV_FILE% (
+   REM ECHO using default svn revision unknown header
+   REM copy %CWD%xbmc\xbox\svn_rev.unknown %REV_FILE%
+REM )
 
-SET REV_FILE=
-SET SUBWCREV=
+REM SET REV_FILE=
+REM SET SUBWCREV=

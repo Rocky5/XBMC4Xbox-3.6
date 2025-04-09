@@ -80,6 +80,8 @@ void CGUIWindowSystemInfo::FrameMove()
     SetControlLabel(i++, "%s %s", 13154, SYSTEM_HDD_MODEL);
     SetControlLabel(i++, "%s %s", 13155, SYSTEM_HDD_SERIAL);
     SetControlLabel(i++, "%s %s", 13156, SYSTEM_HDD_FIRMWARE);
+    SetControlLabel(i++, "%s %s", 13175, SYSTEM_HDD_UDMA_MODE);
+    SetControlLabel(i++, "%s %s", 13176, SYSTEM_HDD_SUPPORTED_UDMA_MODE);
     SetControlLabel(i++, "%s %s", 13157, SYSTEM_HDD_PASSWORD);
     SetControlLabel(i++, "%s %s", 13158, SYSTEM_HDD_LOCKSTATE);
     SetControlLabel(i++, "%s %s", 13150, SYSTEM_HDD_LOCKKEY);

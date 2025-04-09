@@ -386,6 +386,8 @@ int CGUIInfoManager::TranslateSingleString(const CStdString &strCondition)
     else if (strTest.Equals("system.hasdrivef")) ret = SYSTEM_HAS_DRIVE_F;
     else if (strTest.Equals("system.hasdriveg")) ret = SYSTEM_HAS_DRIVE_G;
     else if (strTest.Equals("system.hddtemperature")) ret = SYSTEM_HDD_TEMPERATURE;
+    else if (strTest.Equals("system.hddsupportedudmamode")) ret = SYSTEM_HDD_SUPPORTED_UDMA_MODE;
+    else if (strTest.Equals("system.hddudmamode")) ret = SYSTEM_HDD_UDMA_MODE;
     else if (strTest.Equals("system.hddinfomodel")) ret = SYSTEM_HDD_MODEL;
     else if (strTest.Equals("system.hddinfofirmware")) ret = SYSTEM_HDD_FIRMWARE;
     else if (strTest.Equals("system.hddinfoserial")) ret = SYSTEM_HDD_SERIAL;
@@ -442,10 +444,10 @@ int CGUIInfoManager::TranslateSingleString(const CStdString &strCondition)
     else if (strTest.Equals("system.profilethumb")) ret = SYSTEM_PROFILETHUMB;
     else if (strTest.Equals("system.launchxbe")) ret = SYSTEM_LAUNCHING_XBE;
     else if (strTest.Equals("system.progressbar")) ret = SYSTEM_PROGRESS_BAR;
-    else if (strTest.Equals("system.platform.linux")) ret = SYSTEM_PLATFORM_LINUX;
+    // else if (strTest.Equals("system.platform.linux")) ret = SYSTEM_PLATFORM_LINUX;
     else if (strTest.Equals("system.platform.xbox")) ret = SYSTEM_PLATFORM_XBOX;
-    else if (strTest.Equals("system.platform.windows")) ret = SYSTEM_PLATFORM_WINDOWS;
-    else if (strTest.Equals("system.platform.osx")) ret = SYSTEM_PLATFORM_OSX;
+    // else if (strTest.Equals("system.platform.windows")) ret = SYSTEM_PLATFORM_WINDOWS;
+    // else if (strTest.Equals("system.platform.osx")) ret = SYSTEM_PLATFORM_OSX;
     else if (strTest.Left(15).Equals("system.getbool("))
       return AddMultiInfo(GUIInfo(bNegate ? -SYSTEM_GET_BOOL : SYSTEM_GET_BOOL, ConditionalStringParameter(strTest.Mid(15,strTest.size()-16)), 0));
     else if (strTest.Left(15).Equals("system.setting(")) 
@@ -1309,6 +1311,8 @@ CStdString CGUIInfoManager::GetLabel(int info, int contextWindow)
 
 #ifdef HAS_XBOX_HARDWARE
   case LCD_HDD_TEMPERATURE:
+  case SYSTEM_HDD_SUPPORTED_UDMA_MODE:
+  case SYSTEM_HDD_UDMA_MODE:
   case SYSTEM_HDD_MODEL:
   case SYSTEM_HDD_SERIAL:
   case SYSTEM_HDD_FIRMWARE:

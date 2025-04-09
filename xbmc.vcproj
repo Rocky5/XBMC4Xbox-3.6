@@ -261,7 +261,7 @@ bundler xbelogo\saveimage.rdf -o xbelogo\saveimage.xbx
 				NoPreload="LIBXBMS;LIBSMB;ISO9660;LIBHTTP;LIBMP4;LIBXDAAP;PLATINUM;LCODE"
 				TitleID="0xFACE008"
 				MediaTypes="0x80000007"
-				TitleName="XBMC"
+				TitleName="XBMC4Xbox"
 				TitleImage="$(ProjectDir)xbelogo\titleimage.xbx"
 				SaveGameImage="$(ProjectDir)xbelogo\saveimage.xbx"/>
 		</Configuration>
@@ -322,7 +322,7 @@ bundler xbelogo\saveimage.rdf -o xbelogo\saveimage.xbx
 				NoPreload="LIBXBMS;LIBSMB;ISO9660;LIBHTTP;LIBMP4;LIBXDAAP;PLATINUM;LCODE"
 				TitleID="0xFACE008"
 				MediaTypes="0x80000007"
-				TitleName="XBMC"/>
+				TitleName="XBMC4Xbox"/>
 		</Configuration>
 		<Configuration
 			Name="Debug Xbox No Memory Tracking|Xbox"
@@ -381,7 +381,7 @@ bundler xbelogo\saveimage.rdf -o xbelogo\saveimage.xbx
 				NoPreload="LIBXBMS;LIBSMB;ISO9660;LIBHTTP;LIBMP4;LIBXDAAP;PLATINUM;LCODE"
 				TitleID="0xFACE008"
 				MediaTypes="0x80000007"
-				TitleName="XBMC"/>
+				TitleName="XBMC4Xbox"/>
 		</Configuration>
 	</Configurations>
 	<References>
