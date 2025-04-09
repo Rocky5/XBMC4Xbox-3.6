@@ -1230,8 +1230,8 @@ CStdString CSysInfo::GetMPlayerVersion()
 CStdString CSysInfo::GetKernelVersion()
 {
   int ikrnl = XboxKrnlVersion->Qfe & 67;
-  //CLog::Log(LOGDEBUG, "- XBOX Kernel Qfe= %i", XboxKrnlVersion->Qfe);
-  //CLog::Log(LOGDEBUG, "- XBOX Kernel Drive FG result= %i", ikrnl);
+  CLog::Log(LOGDEBUG, "- XBOX Kernel Qfe= %i", XboxKrnlVersion->Qfe);
+  CLog::Log(LOGDEBUG, "- XBOX Kernel Drive FG result= %i", ikrnl);
   CStdString strKernel;
   strKernel.Format("%u.%u.%u.%u", XboxKrnlVersion->VersionMajor,XboxKrnlVersion->VersionMinor,XboxKrnlVersion->Build,XboxKrnlVersion->Qfe);
   return strKernel;
