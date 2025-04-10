@@ -307,7 +307,7 @@ msgstr "Muovo questi file?"
 
 msgctxt "#125"
 msgid "Delete these files? - Deleting files cannot be undone!"
-msgstr "Elimino questi file? - I file potranno essere recuperati!"
+msgstr "Elimino questi file? - I file non potranno essere recuperati!"
 
 msgctxt "#126"
 msgid "Status"
@@ -3639,7 +3639,7 @@ msgstr "Esci"
 
 msgctxt "#13013"
 msgid "Reboot"
-msgstr "Riavvia"
+msgstr "Riavvia Xbox"
 
 msgctxt "#13014"
 msgid "Minimize"
@@ -4119,7 +4119,7 @@ msgstr "Riduzione banda nera"
 
 msgctxt "#13313"
 msgid "Restart"
-msgstr "Riavvia"
+msgstr "Riavvia XBMC"
 
 msgctxt "#13314"
 msgid "Crossfade between songs"
