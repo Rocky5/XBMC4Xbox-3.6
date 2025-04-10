@@ -3893,6 +3893,14 @@ msgctxt "#13174"
 msgid "HDD power cycle count:"
 msgstr "Conteggio spegnimento HDD:"
 
+msgctxt "#13175"
+msgid "HDD current UDMA mode:"
+msgstr "UMDA attuale dell'HDD"
+
+msgctxt "#13176"
+msgid "HDD max supported UDMA mode:"
+msgstr "L'HDD supporta fino a UMDA"
+
 msgctxt "#13200"
 msgid "Profiles"
 msgstr "Profili"
