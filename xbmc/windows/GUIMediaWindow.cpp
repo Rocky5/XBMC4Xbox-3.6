@@ -910,54 +910,6 @@ bool CGUIMediaWindow::OnClick(int iItem)
 
     if (m_guiState.get() && m_guiState->AutoPlayNextItem() && !g_partyModeManager.IsEnabled() && !pItem->IsPlayList())
     {
-      //play and add current directory to temporary playlist
-      int iPlaylist=m_guiState->GetPlaylist();
-      if (iPlaylist != PLAYLIST_NONE)
-      {
-        g_playlistPlayer.ClearPlaylist(iPlaylist);
-        g_playlistPlayer.Reset();
-        int songToPlay = 0;
-        CFileItemList queueItems;
-        for ( int i = 0; i < m_vecItems->Size(); i++ )
-        {
-          CFileItemPtr item = m_vecItems->Get(i);
-
-          if (item->m_bIsFolder)
-            continue;
-
-          if (!item->IsPlayList() && !item->IsZIP() && !item->IsRAR())
-            queueItems.Add(item);
-
-          if (item == pItem)
-          { // item that was clicked
-            songToPlay = queueItems.Size() - 1;
-          }
-        }
-        g_playlistPlayer.Add(iPlaylist, queueItems);
-
-        // Save current window and directory to know where the selected item was
-        if (m_guiState.get())
-          m_guiState->SetPlaylistDirectory(m_vecItems->GetPath());
-
-        // figure out where we start playback
-        if (g_playlistPlayer.IsShuffled(iPlaylist))
-        {
-          int iIndex = g_playlistPlayer.GetPlaylist(iPlaylist).FindOrder(songToPlay);
-          g_playlistPlayer.GetPlaylist(iPlaylist).Swap(0, iIndex);
-          songToPlay = 0;
-        }
-
-        // play
-        g_playlistPlayer.SetCurrentPlaylist(iPlaylist);
-        g_playlistPlayer.Play(songToPlay);
-      }
-      return true;
-    }
-	
-	bool autoplay = m_guiState.get() && m_guiState->AutoPlayNextItem();
-	
-    if (autoplay && !g_partyModeManager.IsEnabled() && !pItem->IsPlayList())
-    {
       return OnPlayAndQueueMedia(pItem);
     }
     else
