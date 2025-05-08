@@ -953,6 +953,13 @@ bool CGUIMediaWindow::OnClick(int iItem)
       }
       return true;
     }
+	
+	bool autoplay = m_guiState.get() && m_guiState->AutoPlayNextItem();
+	
+    if (autoplay && !g_partyModeManager.IsEnabled() && !pItem->IsPlayList())
+    {
+      return OnPlayAndQueueMedia(pItem);
+    }
     else
     {
       return OnPlayMedia(iItem);
@@ -1165,6 +1172,55 @@ bool CGUIMediaWindow::OnPlayMedia(int iItem)
     pItem->m_lStartOffset = 0;
 
   return bResult;
+}
+
+// \brief Override if you want to change the default behavior of what is done
+// when the user clicks on a file in a "folder" with similar files.
+// This function is called by OnClick()
+bool CGUIMediaWindow::OnPlayAndQueueMedia(const CFileItemPtr &item)
+{
+  //play and add current directory to temporary playlist
+  int iPlaylist = m_guiState->GetPlaylist();
+  if (iPlaylist != PLAYLIST_NONE)
+  {
+    g_playlistPlayer.ClearPlaylist(iPlaylist);
+    g_playlistPlayer.Reset();
+    int mediaToPlay = 0;
+    CFileItemList queueItems;
+    for ( int i = 0; i < m_vecItems->Size(); i++ )
+    {
+      CFileItemPtr nItem = m_vecItems->Get(i);
+
+      if (nItem->m_bIsFolder)
+        continue;
+
+      if (!nItem->IsPlayList() && !nItem->IsZIP() && !nItem->IsRAR())
+        queueItems.Add(nItem);
+
+      if (nItem == item)
+      { // item that was clicked
+        mediaToPlay = queueItems.Size() - 1;
+      }
+    }
+    g_playlistPlayer.Add(iPlaylist, queueItems);
+
+    // Save current window and directory to know where the selected item was
+    if (m_guiState.get())
+      m_guiState->SetPlaylistDirectory(m_vecItems->GetPath());
+
+    // figure out where we start playback
+    if (g_playlistPlayer.IsShuffled(iPlaylist))
+    {
+      int iIndex = g_playlistPlayer.GetPlaylist(iPlaylist).FindOrder(mediaToPlay);
+      g_playlistPlayer.GetPlaylist(iPlaylist).Swap(0, iIndex);
+      mediaToPlay = 0;
+    }
+
+    // play
+    g_playlistPlayer.SetCurrentPlaylist(iPlaylist);
+    g_playlistPlayer.Play(mediaToPlay);
+  }
+  return true;
 }
 
 // \brief Synchonize the fileitems with the playlistplayer

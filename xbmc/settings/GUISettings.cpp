@@ -418,15 +418,16 @@ void CGUISettings::Initialize()
   AddString(13, "videolibrary.import", 648, "", BUTTON_CONTROL_STANDARD);
 
   AddCategory(5, "videoplayer", 14086);
-  AddInt(1, "videoplayer.resumeautomatically", 12017, RESUME_ASK, RESUME_NO, 1, RESUME_ASK, SPIN_CONTROL_TEXT);
-  AddString(2, "videoplayer.calibrate", 214, "", BUTTON_CONTROL_STANDARD);
-  AddSeparator(3, "videoplayer.sep1");
-  AddInt(4, "videoplayer.rendermethod", 13354, RENDER_HQ_RGB_SHADER, RENDER_LQ_RGB_SHADER, 1, RENDER_HQ_RGB_SHADERV2, SPIN_CONTROL_TEXT);
-  AddInt(5, "videoplayer.displayresolution", 169, (int)AUTORES, (int)HDTV_1080i, 1, (int)AUTORES, SPIN_CONTROL_TEXT);
-  AddInt(6, "videoplayer.framerateconversions", 336, FRAME_RATE_LEAVE_AS_IS, FRAME_RATE_LEAVE_AS_IS, 1, FRAME_RATE_USE_PAL60, SPIN_CONTROL_TEXT);
-  AddInt(7, "videoplayer.flicker", 13100, 1, 0, 1, 5, SPIN_CONTROL_INT_PLUS, -1, TEXT_OFF);
-  AddBool(8, "videoplayer.soften", 215, false);
-  AddFloat(9, "videoplayer.errorinaspect", 22021, 3.0f, 0.0f, 1.0f, 20.0f);
+  AddBool(1, "videoplayer.autoplaynextitem", 13433, false);
+  AddInt(2, "videoplayer.resumeautomatically", 12017, RESUME_ASK, RESUME_NO, 1, RESUME_ASK, SPIN_CONTROL_TEXT);
+  AddString(3, "videoplayer.calibrate", 214, "", BUTTON_CONTROL_STANDARD);
+  AddSeparator(4, "videoplayer.sep1");
+  AddInt(5, "videoplayer.rendermethod", 13354, RENDER_HQ_RGB_SHADER, RENDER_LQ_RGB_SHADER, 1, RENDER_HQ_RGB_SHADERV2, SPIN_CONTROL_TEXT);
+  AddInt(6, "videoplayer.displayresolution", 169, (int)AUTORES, (int)HDTV_1080i, 1, (int)AUTORES, SPIN_CONTROL_TEXT);
+  AddInt(7, "videoplayer.framerateconversions", 336, FRAME_RATE_LEAVE_AS_IS, FRAME_RATE_LEAVE_AS_IS, 1, FRAME_RATE_USE_PAL60, SPIN_CONTROL_TEXT);
+  AddInt(8, "videoplayer.flicker", 13100, 1, 0, 1, 5, SPIN_CONTROL_INT_PLUS, -1, TEXT_OFF);
+  AddBool(9, "videoplayer.soften", 215, false);
+  AddFloat(10, "videoplayer.errorinaspect", 22021, 3.0f, 0.0f, 1.0f, 20.0f);
   AddSeparator(11, "videoplayer.sep2");
   AddInt(12, "videoplayer.defaultplayer", 22003, PLAYER_DVDPLAYER, PLAYER_MPLAYER, 1, PLAYER_DVDPLAYER, SPIN_CONTROL_TEXT);
   AddBool(13, "videoplayer.allcodecs", 22025, false);
