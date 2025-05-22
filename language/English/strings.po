@@ -8413,6 +8413,19 @@ msgstr ""
 #strings 30000 thru 30999 reserved for plugins and plugin settings
 #strings 31000 thru 31999 reserved for skins
 #strings 32000 thru 32999 reserved for scripts
+
+msgctxt "#32025"
+msgid "Discord"
+msgstr ""
+
+msgctxt "#32026"
+msgid "Enable xbdStats communication"
+msgstr ""
+
+msgctxt "#32027"
+msgid "Pass title names to server"
+msgstr ""
+
 #strings 33000 thru 33999 reserved for common strings used in addons
 
 msgctxt "#33001"

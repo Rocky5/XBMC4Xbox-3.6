@@ -25,7 +25,7 @@ typedef const char *PCSZ;
     // 114 Image timestamp - unknown format
     ULONG Timestamp;
     // 118 Pointer to certificate data (must be within HeaderSize)
-    struct _XBE_CERTIFICATE *Certificate;
+    USHORT XbeCertificate;
     // 11C Number of sections
     DWORD NumSections;
     // 120 Pointer to section headers (must be within HeaderSize)

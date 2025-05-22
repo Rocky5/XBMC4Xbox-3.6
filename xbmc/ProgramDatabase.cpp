@@ -141,6 +141,46 @@ int CProgramDatabase::GetTitleId(const CStdString& strFilenameAndPath)
   return 0;
 }
 
+bool CProgramDatabase::getTitleName(const CStdString& strFileName, CStdString& strTitleName)
+{
+    try
+    {
+        if (NULL == m_pDB.get() || NULL == m_pDS.get()) return false;
+        CStdString strSQL = PrepareSQL("SELECT altName, xbedescription FROM files WHERE strFileName LIKE '%s'", strFileName.c_str());
+        if (!m_pDS->query(strSQL.c_str())) return false;
+        int iRowsFound = m_pDS->num_rows();
+        if (iRowsFound == 0)
+        {
+            m_pDS->close();
+            return false;
+        }
+        CStdString altName = m_pDS->fv("files.altName").get_asString();
+        CStdString xbeDescription = m_pDS->fv("files.xbedescription").get_asString();
+        m_pDS->close();
+		
+        if (!altName.IsEmpty())
+        {
+            strTitleName = altName;
+        }
+        else if (!xbeDescription.IsEmpty())
+        {
+            strTitleName = xbeDescription;
+        }
+        else 
+        {
+            return false;
+        }
+        CLog::Log(LOGDEBUG, "CProgramDatabase::getTitleName(%s) -> strTitleName=%s", strFileName.c_str(), strTitleName.c_str());
+        return true;
+    }
+    catch (...)
+    {
+        CLog::Log(LOGERROR, "CProgramDatabase::getTitleName(%s) failed", strFileName.c_str());
+    }
+
+    return false;
+}
+
 bool CProgramDatabase::SetRegion(const CStdString& strFileName, int iRegion)
 {
   try

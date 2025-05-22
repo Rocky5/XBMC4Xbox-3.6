@@ -25,6 +25,7 @@
 #include "Util.h"
 #include "xbox/IoSupport.h"
 #include "xbox/xbeheader.h"
+#include "ProgramDatabase.h"
 #ifdef HAS_XBOX_HARDWARE
 #include "xbox/Undocumented.h"
 #include "xbresource.h"
@@ -3898,6 +3899,120 @@ bool CUtil::RunFFPatchedXBE(CStdString szPath1, CStdString& szNewPath)
   return true;
 }
 
+void CUtil::SendToXBDStats(const CStdString& xbePath)
+{
+	CStdString strTitleID, strTitleName;
+	CProgramDatabase m_database;
+	strTitleID.Format("%08X", CUtil::GetXbeID(xbePath));
+	CStdString ipaddress = g_guiSettings.GetString("discord.xbdstatsip");
+	int port = atoi(g_guiSettings.GetString("discord.xbdstatsport"));
+	const int retry_totaltime = 2000;
+	const int retry_interval = 500;
+	int elapsedtime = 0;
+
+	bool dbOpened = m_database.Open();
+	if (!dbOpened)
+		CLog::Log(LOGERROR, "Error: Failed to open myprograms6.db.");
+
+	bool foundTitle = dbOpened && m_database.getTitleName(xbePath, strTitleName);
+	if (!foundTitle)
+	{
+		CLog::Log(LOGWARNING, "Title not found in database for %s. Using xbe title name.", xbePath.c_str());
+		GetXBEDescription(xbePath, strTitleName);
+	}
+	if (dbOpened)
+		m_database.Close();
+
+	char message[128];
+	if (g_guiSettings.GetBool("discord.xbdstatsforcenames"))
+		snprintf(message, sizeof(message), "{\"id\":\"%s\", \"name\":\"%s\"}", strTitleID.c_str(), strTitleName.c_str());
+	else
+		snprintf(message, sizeof(message), "{\"id\":\"%s\"}", strTitleID.c_str());
+
+	SOCKET sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+	if (sock == INVALID_SOCKET)
+	{
+		CLog::Log(LOGERROR, "Failed to create UDP socket for SendToXBDStats");
+		return;
+	}
+
+	sockaddr_in addr;
+	addr.sin_family = AF_INET;
+	addr.sin_port = htons(port);
+	addr.sin_addr.s_addr = inet_addr(ipaddress.c_str());
+
+	while (elapsedtime < retry_totaltime)
+	{
+		int sentBytes = sendto(sock, message, strlen(message), 0, (sockaddr*)&addr, sizeof(addr));
+		if (sentBytes != SOCKET_ERROR)
+		{
+			CLog::Log(LOGINFO, "UDP message sent successfully (%d bytes)", sentBytes);
+			break;
+		}
+		CLog::Log(LOGERROR, "Failed to send UDP message. Error: %d", WSAGetLastError());
+		Sleep(retry_interval);
+		elapsedtime += retry_interval;
+	}
+
+	if (elapsedtime >= retry_totaltime)
+	{
+		CLog::Log(LOGERROR, "Failed to send UDP message within 2 seconds. Falling back to TCP.");
+		elapsedtime = 0;
+		XBDStatsTCPFallback(message, ipaddress, port, retry_totaltime, retry_interval, elapsedtime);
+	}
+
+	closesocket(sock);
+}
+
+void CUtil::XBDStatsTCPFallback(const char* message, const CStdString& ipaddress, int port, const int retry_totaltime, const int retry_interval, int elapsedtime)
+{
+	CLog::Log(LOGINFO, "Starting TCP fallback for XBDStats...");
+
+	SOCKET sock;
+	sockaddr_in addr;
+	memset(&addr, 0, sizeof(addr));
+	addr.sin_family = AF_INET;
+	addr.sin_port = htons(port + 1);
+	addr.sin_addr.s_addr = inet_addr(ipaddress.c_str());
+
+	while (elapsedtime < retry_totaltime) 
+	{
+		sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+		if (sock == INVALID_SOCKET) 
+		{
+			CLog::Log(LOGERROR, "Failed to create TCP socket. Error: %d", WSAGetLastError());
+			return;
+		}
+
+		CLog::Log(LOGINFO, "Connect to XBDStats server at %s:%d", ipaddress.c_str(), port);
+		if (connect(sock, (sockaddr*)&addr, sizeof(addr)) == SOCKET_ERROR) 
+		{
+			CLog::Log(LOGERROR, "Failed to connect via TCP. Error: %d", WSAGetLastError());
+			closesocket(sock);
+		}
+		else 
+		{
+			CLog::Log(LOGINFO, "Connected to XBDStats server. Sending message...");
+			
+			int sentBytes = send(sock, message, strlen(message), 0);
+			if (sentBytes == SOCKET_ERROR) 
+				CLog::Log(LOGERROR, "Failed to send TCP message. Error: %d", WSAGetLastError());
+			else 
+			{
+				CLog::Log(LOGINFO, "TCP fallback message sent successfully (%d bytes)", sentBytes);
+				closesocket(sock);
+				return;
+			}
+		}
+
+		Sleep(retry_interval);
+		elapsedtime += retry_interval;
+	}
+
+	CLog::Log(LOGERROR, "Failed to send TCP message within 4 seconds.");
+	closesocket(sock);
+}
+
 void CUtil::RunXBE(const char* szPath1, char* szParameters, F_VIDEO ForceVideo, F_COUNTRY ForceCountry, CUSTOM_LAUNCH_DATA* pData)
 {
   // check if locked
@@ -3910,6 +4025,11 @@ void CUtil::RunXBE(const char* szPath1, char* szParameters, F_VIDEO ForceVideo, 
   /// \param szPath1 Path of executeable to run
   /// \param szParameters Any parameters to pass to the executeable being run
   g_application.PrintXBEToLCD(szPath1); //write to LCD
+  
+ // check if discord stats is enabled
+ if (g_guiSettings.GetBool("discord.xbdstats"))
+     SendToXBDStats(szPath1);
+  
   Sleep(600);        //and wait a little bit to execute
 
   char szPath[1024];

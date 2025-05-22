@@ -478,6 +478,12 @@ void CGUISettings::Initialize()
   // network settings
   AddGroup(6, 705);
 
+  AddCategory(6, "discord", 32025);
+  AddBool(1,  "discord.xbdstats", 32026, false);
+  AddBool(2,"discord.xbdstatsforcenames", 32027, false);
+  AddString(3,"discord.xbdstatsip", 150, "", EDIT_CONTROL_IP_INPUT);
+  AddString(4,"discord.xbdstatsport", 792, "", EDIT_CONTROL_NUMBER_INPUT, true, 792);
+
   AddCategory(6, "services", 14036);
   AddBool(1, "services.upnpserver", 21360, false);
   AddBool(2, "services.upnprenderer", 21881, false);

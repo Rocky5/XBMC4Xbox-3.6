@@ -47,6 +47,8 @@ public:
 
   int GetRegion(const CStdString& strFilenameAndPath);
   bool SetRegion(const CStdString& strFilenameAndPath, int iRegion=-1);
+  
+  bool getTitleName(const CStdString& strFileName, CStdString& strTitleName);
 
   int GetTitleId(const CStdString& strFilenameAndPath);
   bool SetTitleId(const CStdString& strFilenameAndPath, int idTitle);
