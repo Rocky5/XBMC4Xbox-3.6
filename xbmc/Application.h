@@ -76,6 +76,7 @@ public:
   void StopIdleThread();
   void StartWebServer();
   void StopWebServer();
+  void CheckxbdStats();
   void StartFtpServer();
   void StopFtpServer();
   void StartTimeServer();

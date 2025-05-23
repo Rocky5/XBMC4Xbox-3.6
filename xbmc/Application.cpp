@@ -1366,14 +1366,6 @@ HRESULT CApplication::Initialize()
 
   CLog::Log(LOGINFO, "removing tempfiles");
   CUtil::RemoveTempFiles();
-  
-  // check if discord stats is enabled and if network is up and running send message
-  if (g_guiSettings.GetBool("discord.xbdstats"))
-  {
-      char szXBEFileName[1024];
-      CIoSupport::GetXbePath(szXBEFileName);
-      CUtil::SendToXBDStats(szXBEFileName);
-  }
 
   if (!m_bAllSettingsLoaded)
   {
@@ -1454,6 +1446,17 @@ void CApplication::StartIdleThread()
 void CApplication::StopIdleThread()
 {
   m_idleThread.StopThread();
+}
+
+void CApplication::CheckxbdStats()
+{
+	// check if discord stats is enabled and if network is up and running send message
+	if (g_guiSettings.GetBool("discord.xbdstats"))
+	{
+		char szXBEFileName[1024];
+		CIoSupport::GetXbePath(szXBEFileName);
+		CUtil::SendToXBDStats(szXBEFileName);
+	}					 
 }
 
 void CApplication::StartWebServer()

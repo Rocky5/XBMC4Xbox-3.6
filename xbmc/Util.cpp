@@ -4009,7 +4009,7 @@ void CUtil::XBDStatsTCPFallback(const char* message, const CStdString& ipaddress
 		elapsedtime += retry_interval;
 	}
 
-	CLog::Log(LOGERROR, "Failed to send TCP message within 4 seconds.");
+	CLog::Log(LOGERROR, "Failed to send TCP message within 2 seconds.");
 	closesocket(sock);
 }
 
