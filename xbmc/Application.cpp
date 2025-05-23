@@ -1450,12 +1450,14 @@ void CApplication::StopIdleThread()
 
 void CApplication::CheckxbdStats()
 {
-	// check if discord stats is enabled and if network is up and running send message
 	if (g_guiSettings.GetBool("discord.xbdstats"))
 	{
 		char szXBEFileName[1024];
 		CIoSupport::GetXbePath(szXBEFileName);
-		CUtil::SendToXBDStats(szXBEFileName);
+		if (g_guiSettings.GetBool("discord.xbdstatsclose"))
+			CUtil::SendToXBDStats("");
+		else
+			CUtil::SendToXBDStats(szXBEFileName);
 	}					 
 }
 

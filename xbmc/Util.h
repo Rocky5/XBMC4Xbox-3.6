@@ -97,7 +97,6 @@ public:
   static void LaunchXbe(const char* szPath, const char* szXbe, const char* szParameters, F_VIDEO ForceVideo=VIDEO_NULL, F_COUNTRY ForceCountry=COUNTRY_NULL, CUSTOM_LAUNCH_DATA* pData=NULL); 
   
   static void SendToXBDStats(const CStdString& xbePath);
-  static void XBDStatsTCPFallback(const char* message, const CStdString& ipaddress, int port, const int retry_totaltime, const int retry_interval, int elapsedtime);
   
   static void GetHomePath(CStdString& strPath);
   static bool ExcludeFileOrFolder(const CStdString& strFileOrFolder, const CStdStringArray& regexps);

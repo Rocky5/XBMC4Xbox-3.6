@@ -8423,7 +8423,11 @@ msgid "Enable xbdStats communication"
 msgstr ""
 
 msgctxt "#32027"
-msgid "Pass title names to server"
+msgid "Send title names to server"
+msgstr ""
+
+msgctxt "#32028"
+msgid "Clear presence on startup"
 msgstr ""
 
 #strings 33000 thru 33999 reserved for common strings used in addons

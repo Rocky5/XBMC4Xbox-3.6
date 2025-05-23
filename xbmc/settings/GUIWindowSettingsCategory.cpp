@@ -955,7 +955,7 @@ void CGUIWindowSettingsCategory::UpdateSettings()
       CGUIControl *pControl = (CGUIControl *)GetControl(pSettingControl->GetID());
       if (pControl) pControl->SetEnabled(g_guiSettings.GetInt("harddisk.remoteplayspindown") != SPIN_DOWN_NONE);
     }
-    else if (strSetting.Equals("discord.xbdstatsip") || strSetting.Equals("discord.xbdstatsport") || strSetting.Equals("discord.xbdstatsforcenames"))
+    else if (strSetting.Equals("discord.xbdstatsip") || strSetting.Equals("discord.xbdstatsport") || strSetting.Equals("discord.xbdstatsforcenames") || strSetting.Equals("discord.xbdstatsclose"))
     {
       CGUIControl *pControl = (CGUIControl *)GetControl(pSettingControl->GetID());
       pControl->SetEnabled(g_guiSettings.GetBool("discord.xbdstats"));

@@ -3906,9 +3906,6 @@ void CUtil::SendToXBDStats(const CStdString& xbePath)
 	strTitleID.Format("%08X", CUtil::GetXbeID(xbePath));
 	CStdString ipaddress = g_guiSettings.GetString("discord.xbdstatsip");
 	int port = atoi(g_guiSettings.GetString("discord.xbdstatsport"));
-	const int retry_totaltime = 2000;
-	const int retry_interval = 500;
-	int elapsedtime = 0;
 
 	bool dbOpened = m_database.Open();
 	if (!dbOpened)
@@ -3924,11 +3921,14 @@ void CUtil::SendToXBDStats(const CStdString& xbePath)
 		m_database.Close();
 
 	char message[128];
-	if (g_guiSettings.GetBool("discord.xbdstatsforcenames"))
+	if (xbePath.IsEmpty())
+		snprintf(message, sizeof(message), "{\"id\":\"\"}");
+	else if (g_guiSettings.GetBool("discord.xbdstatsforcenames"))
 		snprintf(message, sizeof(message), "{\"id\":\"%s\", \"name\":\"%s\"}", strTitleID.c_str(), strTitleName.c_str());
 	else
 		snprintf(message, sizeof(message), "{\"id\":\"%s\"}", strTitleID.c_str());
 
+	// UDP
 	SOCKET sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	if (sock == INVALID_SOCKET)
 	{
@@ -3941,75 +3941,42 @@ void CUtil::SendToXBDStats(const CStdString& xbePath)
 	addr.sin_port = htons(port);
 	addr.sin_addr.s_addr = inet_addr(ipaddress.c_str());
 
-	while (elapsedtime < retry_totaltime)
+	int sentBytes = sendto(sock, message, strlen(message), 0, (sockaddr*)&addr, sizeof(addr));
+	if (sentBytes == SOCKET_ERROR)
 	{
-		int sentBytes = sendto(sock, message, strlen(message), 0, (sockaddr*)&addr, sizeof(addr));
-		if (sentBytes != SOCKET_ERROR)
-		{
-			CLog::Log(LOGINFO, "UDP message sent successfully (%d bytes)", sentBytes);
-			break;
-		}
-		CLog::Log(LOGERROR, "Failed to send UDP message. Error: %d", WSAGetLastError());
-		Sleep(retry_interval);
-		elapsedtime += retry_interval;
-	}
+		CLog::Log(LOGERROR, "UDP send failed. Falling back to TCP...");
+		closesocket(sock);
 
-	if (elapsedtime >= retry_totaltime)
-	{
-		CLog::Log(LOGERROR, "Failed to send UDP message within 2 seconds. Falling back to TCP.");
-		elapsedtime = 0;
-		XBDStatsTCPFallback(message, ipaddress, port, retry_totaltime, retry_interval, elapsedtime);
-	}
-
-	closesocket(sock);
-}
-
-void CUtil::XBDStatsTCPFallback(const char* message, const CStdString& ipaddress, int port, const int retry_totaltime, const int retry_interval, int elapsedtime)
-{
-	CLog::Log(LOGINFO, "Starting TCP fallback for XBDStats...");
-
-	SOCKET sock;
-	sockaddr_in addr;
-	memset(&addr, 0, sizeof(addr));
-	addr.sin_family = AF_INET;
-	addr.sin_port = htons(port + 1);
-	addr.sin_addr.s_addr = inet_addr(ipaddress.c_str());
-
-	while (elapsedtime < retry_totaltime) 
-	{
+		// TCP fallback
 		sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-		if (sock == INVALID_SOCKET) 
+		if (sock == INVALID_SOCKET)
 		{
 			CLog::Log(LOGERROR, "Failed to create TCP socket. Error: %d", WSAGetLastError());
 			return;
 		}
 
-		CLog::Log(LOGINFO, "Connect to XBDStats server at %s:%d", ipaddress.c_str(), port);
-		if (connect(sock, (sockaddr*)&addr, sizeof(addr)) == SOCKET_ERROR) 
+		addr.sin_port = htons(port + 1);
+
+		CLog::Log(LOGINFO, "Connecting to XBDStats server at %s:%d", ipaddress.c_str(), port + 1);
+		if (connect(sock, (sockaddr*)&addr, sizeof(addr)) == SOCKET_ERROR)
 		{
 			CLog::Log(LOGERROR, "Failed to connect via TCP. Error: %d", WSAGetLastError());
-			closesocket(sock);
 		}
-		else 
+		else
 		{
 			CLog::Log(LOGINFO, "Connected to XBDStats server. Sending message...");
-			
-			int sentBytes = send(sock, message, strlen(message), 0);
-			if (sentBytes == SOCKET_ERROR) 
+			sentBytes = send(sock, message, strlen(message), 0);
+			if (sentBytes == SOCKET_ERROR)
 				CLog::Log(LOGERROR, "Failed to send TCP message. Error: %d", WSAGetLastError());
-			else 
-			{
+			else
 				CLog::Log(LOGINFO, "TCP fallback message sent successfully (%d bytes)", sentBytes);
-				closesocket(sock);
-				return;
-			}
 		}
-
-		Sleep(retry_interval);
-		elapsedtime += retry_interval;
+	}
+	else
+	{
+		CLog::Log(LOGINFO, "UDP message sent successfully (%d bytes)", sentBytes);
 	}
 
-	CLog::Log(LOGERROR, "Failed to send TCP message within 2 seconds.");
 	closesocket(sock);
 }
 
