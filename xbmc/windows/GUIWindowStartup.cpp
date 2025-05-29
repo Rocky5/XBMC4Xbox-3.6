@@ -19,10 +19,15 @@
  */
 
 #include "windows/GUIWindowStartup.h"
+#include "settings/Settings.h"
+#include "Util.h"
 
 CGUIWindowStartup::CGUIWindowStartup(void)
-    : CGUIWindow(WINDOW_STARTUP_ANIM, "Startup.xml")
+    : CGUIWindow(WINDOW_STARTUP_ANIM, "Startup.xml") 
 {
+	int boool = 0;
+	if (!CUtil::CheckForKernelPatchable(boool)) 
+		g_guiSettings.SetBool("myprograms.gameautoregion", false);
 }
 
 CGUIWindowStartup::~CGUIWindowStartup(void)
